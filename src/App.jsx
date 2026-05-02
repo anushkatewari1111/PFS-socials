@@ -637,9 +637,15 @@ const styles = {
     lineHeight: "1.7",
     whiteSpace: "pre-wrap",
     color: COLORS.gray900,
+    minHeight: "160px",
     maxHeight: "300px",
     overflowY: "auto",
     fontFamily: "'DM Sans', sans-serif",
+    width: "100%",
+    boxSizing: "border-box",
+    border: `1.5px solid ${COLORS.gray200}`,
+    resize: "vertical",
+    outline: "none",
   },
   copyBtn: {
     display: "inline-flex",
@@ -1172,9 +1178,11 @@ export default function PFSSocialMediaHub() {
                       </div>
                     </div>
 
-                    <div style={styles.captionPreview}>
-                      {activePlatform === "ig" ? generated.ig : activePlatform === "fb" ? generated.fb : generated.li}
-                    </div>
+                    <textarea
+                      style={styles.captionPreview}
+                      value={activePlatform === "ig" ? generated.ig : activePlatform === "fb" ? generated.fb : generated.li}
+                      onChange={(e) => setGenerated(prev => ({ ...prev, [activePlatform]: e.target.value }))}
+                    />
 
                     <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
                       <button style={styles.copyBtn} onClick={() => handleCopy(activePlatform)}>
