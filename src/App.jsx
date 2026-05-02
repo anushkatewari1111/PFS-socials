@@ -24,19 +24,49 @@ const COLORS = {
   gray900: "#1A2B35",
 };
 
-// Awareness days relevant to PFS
+// Awareness days relevant to PFS — sourced from Dana's calendar, eco-calendar, and HandsOnHK
 const AWARENESS_DAYS = [
-  { month: 1, day: 1, title: "New Year - Ocean Resolutions Post", icon: "🌊", type: "awareness" },
+  // January
+  { month: 1, day: 1, title: "New Year - Ocean Resolutions Post", icon: "🎆", type: "awareness" },
+  // February
   { month: 2, day: 2, title: "World Wetlands Day", icon: "🌿", type: "awareness" },
+  { month: 2, day: 6, title: "Chinese New Year Post", icon: "🧧", type: "awareness" },
+  // March
+  { month: 3, day: 18, title: "Global Recycling Day", icon: "♻️", type: "awareness" },
   { month: 3, day: 22, title: "World Water Day", icon: "💧", type: "awareness" },
+  { month: 3, day: 30, title: "International Day of Zero Waste", icon: "🚯", type: "awareness" },
+  // April
   { month: 4, day: 22, title: "Earth Day", icon: "🌍", type: "awareness" },
-  { month: 5, day: 22, title: "Intl Day for Biological Diversity", icon: "🐢", type: "awareness" },
+  // May
+  { month: 5, day: 23, title: "World Turtle Day", icon: "🐢", type: "awareness" },
+  // June
+  { month: 6, day: 1, title: "World Reef Awareness Day", icon: "🪸", type: "awareness" },
   { month: 6, day: 5, title: "World Environment Day", icon: "🌱", type: "awareness" },
   { month: 6, day: 8, title: "World Ocean Day", icon: "🐋", type: "awareness" },
-  { month: 7, day: 3, title: "Intl Plastic Bag Free Day", icon: "🚫", type: "awareness" },
-  { month: 9, day: 15, title: "Intl Coastal Cleanup Day", icon: "🏖️", type: "awareness" },
-  { month: 10, day: 5, title: "World Habitat Day", icon: "🐚", type: "awareness" },
-  { month: 11, day: 15, title: "America Recycles Day / Global", icon: "♻️", type: "awareness" },
+  { month: 6, day: 16, title: "Sea Turtle Day / World Refill Day", icon: "🐢", type: "awareness" },
+  // July
+  { month: 7, day: 1, title: "Plastic Free July Begins 🗓️", icon: "🚫", type: "campaign" },
+  { month: 7, day: 3, title: "Intl Plastic Bag Free Day", icon: "🛍️", type: "awareness" },
+  { month: 7, day: 4, title: "No Butt's Day (Cigarette Butts)", icon: "🚬", type: "campaign" },
+  { month: 7, day: 14, title: "Shark Awareness Day", icon: "🦈", type: "awareness" },
+  { month: 7, day: 26, title: "Intl Day for Mangrove Conservation", icon: "🌳", type: "awareness" },
+  // September
+  { month: 9, day: 20, title: "Intl Coastal Cleanup Day (3rd Sat)", icon: "🏖️", type: "awareness" },
+  { month: 9, day: 25, title: "Mid-Autumn Festival Post", icon: "🥮", type: "awareness" },
+  // October
+  { month: 10, day: 1, title: "Great Global Nurdle Hunt Begins 🗓️", icon: "🔍", type: "campaign" },
+  { month: 10, day: 4, title: "No Disposable Cup Day", icon: "☕", type: "awareness" },
+  // November
+  { month: 11, day: 8, title: "Call to Earth Day (CNN)", icon: "📡", type: "awareness" },
+  // December
+  { month: 12, day: 25, title: "Christmas Post", icon: "🎄", type: "awareness" },
+  { month: 12, day: 31, title: "New Year's / Year in Review Post", icon: "🎆", type: "awareness" },
+];
+
+// Specific HandsOnHK / PFS events (manually updated from HandsOnHK calendar)
+const HOHK_EVENTS = [
+  { year: 2026, month: 5, day: 16, title: "Serve-a-thon: Mangrove & Beach Cleanup + Biodiversity Talk (Pak Nai)", icon: "🌿", type: "cleanup" },
+  { year: 2026, month: 5, day: 30, title: "Beach Cleaning in Cheung Sha Lan (HandsOnHK)", icon: "🏖️", type: "cleanup" },
 ];
 
 // Recurring monthly events — spaced ~1.5 weeks apart
@@ -194,6 +224,13 @@ function getCalendarEvents(year, month) {
       if (rec.dayOfMonth <= maxDay) {
         events.push({ day: rec.dayOfMonth, ...rec, type: rec.type });
       }
+    }
+  });
+
+  // Specific HandsOnHK events (manually updated)
+  HOHK_EVENTS.forEach(evt => {
+    if (evt.year === year && evt.month === month + 1) {
+      events.push({ day: evt.day, ...evt });
     }
   });
 
@@ -435,8 +472,8 @@ const styles = {
     borderRadius: "4px",
     marginBottom: "2px",
     lineHeight: "1.3",
-    background: type === "cleanup" ? "#E8F5E9" : type === "awareness" ? "#FFF3E0" : type === "roundup" ? "#E3F2FD" : "#F3E5F5",
-    color: type === "cleanup" ? "#2E7D32" : type === "awareness" ? "#E65100" : type === "roundup" ? "#1565C0" : "#6A1B9A",
+    background: type === "cleanup" ? "#E8F5E9" : type === "awareness" ? "#FFF3E0" : type === "roundup" ? "#E3F2FD" : type === "campaign" ? "#FCE4EC" : "#F3E5F5",
+    color: type === "cleanup" ? "#2E7D32" : type === "awareness" ? "#E65100" : type === "roundup" ? "#1565C0" : type === "campaign" ? "#AD1457" : "#6A1B9A",
     cursor: "pointer",
     overflow: "hidden",
     whiteSpace: "nowrap",
@@ -744,7 +781,7 @@ export default function PFSSocialMediaHub() {
   const handleEventClick = (evt) => {
     setSelectedEvent(evt);
     setActiveTab("create");
-    setEventType(evt.type === "cleanup" ? "cleanup" : evt.type === "awareness" ? "awareness" : "roundup");
+    setEventType(evt.type === "cleanup" ? "cleanup" : evt.type === "awareness" ? "awareness" : evt.type === "campaign" ? "awareness" : "roundup");
     setDescription(`${evt.title} — `);
   };
 
@@ -854,6 +891,9 @@ export default function PFSSocialMediaHub() {
               </div>
               <div style={styles.legendItem}>
                 <div style={styles.legendDot("#E3F2FD")} /> School Talks Roundup
+              </div>
+              <div style={styles.legendItem}>
+                <div style={styles.legendDot("#FCE4EC")} /> Campaign
               </div>
             </div>
 
