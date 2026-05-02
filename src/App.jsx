@@ -763,32 +763,24 @@ export default function PFSSocialMediaHub() {
     setGenerating(true);
     setGenerateError(null);
     try {
-      const payload = { eventType, description, imageCount: images.length, partners: detectedPartners };
-      console.log("[PFS] POST /api/generate payload:", payload);
-
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ eventType, description, imageCount: images.length, partners: detectedPartners }),
       });
-
-      console.log("[PFS] response status:", res.status);
 
       if (!res.ok) {
         const errBody = await res.json();
-        console.error("[PFS] error body:", errBody);
         throw new Error(errBody.error ?? "Request failed");
       }
 
       const data = await res.json();
-      console.log("[PFS] response data:", data);
 
       setGenerated({ ig: data.ig, fb: data.fb, li: data.li });
       setGuidance(data.guidance ?? []);
       setBestTime(data.bestTime ?? null);
       setActivePlatform("ig");
     } catch (err) {
-      console.error("[PFS] caught error:", err);
       setGenerateError(err.message);
     } finally {
       setGenerating(false);
