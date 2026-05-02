@@ -77,6 +77,8 @@ Respond with ONLY a valid JSON object, no markdown, no explanation. Use this exa
     return res.status(200).json(data);
   } catch (err) {
     console.error("Generation error:", err);
-    return res.status(500).json({ error: "Failed to generate content. Please try again." });
+    return res.status(500).json({
+      error: err?.message ?? "Failed to generate content. Please try again.",
+    });
   }
 }
