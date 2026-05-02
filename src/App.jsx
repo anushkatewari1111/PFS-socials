@@ -713,6 +713,9 @@ export default function PFSSocialMediaHub() {
   const [activePlatform, setActivePlatform] = useState("ig");
   const [copiedPlatform, setCopiedPlatform] = useState(null);
   const [guidance, setGuidance] = useState([]);
+  const [bestTime, setBestTime] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState(null);
   const [partners, setPartners] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -753,15 +756,34 @@ export default function PFSSocialMediaHub() {
     setImages(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!description.trim()) return;
     const detectedPartners = detectPartners(description);
     setPartners(detectedPartners);
-    const captions = generateCaptions(description, eventType, detectedPartners);
-    setGenerated(captions);
-    const tips = getCreativeGuidance(description, images.length);
-    setGuidance(tips);
-    setActivePlatform("ig");
+    setGenerating(true);
+    setGenerateError(null);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventType,
+          description,
+          imageCount: images.length,
+          partners: detectedPartners,
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Request failed");
+      const data = await res.json();
+      setGenerated({ ig: data.ig, fb: data.fb, li: data.li });
+      setGuidance(data.guidance ?? []);
+      setBestTime(data.bestTime ?? null);
+      setActivePlatform("ig");
+    } catch (err) {
+      setGenerateError(err.message);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleCopy = async (platform) => {
@@ -1045,10 +1067,15 @@ export default function PFSSocialMediaHub() {
                       cursor: description.trim() ? "pointer" : "not-allowed",
                     }}
                     onClick={handleGenerate}
-                    disabled={!description.trim()}
+                    disabled={!description.trim() || generating}
                   >
-                    <Icons.Sparkle /> Generate Draft Posts
+                    <Icons.Sparkle /> {generating ? "Generating…" : "Generate Draft Posts"}
                   </button>
+                  {generateError && (
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: COLORS.coral }}>
+                      ⚠️ {generateError}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1094,20 +1121,20 @@ export default function PFSSocialMediaHub() {
                 )}
 
                 {/* Posting time */}
-                {generated && (
+                {generated && bestTime && (
                   <div style={{ ...styles.card, marginTop: "16px" }}>
                     <div style={styles.cardTitle}>⏰ Best Time to Post</div>
                     <div style={{ fontSize: "13px", color: COLORS.gray700, lineHeight: "1.6" }}>
                       <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                         <span style={{ ...styles.pill(COLORS.ocean), fontWeight: "600" }}>Weekdays</span>
-                        <span style={{ fontSize: "13px" }}>12:00–2:00 PM or 7:00–9:00 PM HKT</span>
+                        <span style={{ fontSize: "13px" }}>{bestTime.weekdays}</span>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <span style={{ ...styles.pill(COLORS.seaweed), fontWeight: "600" }}>Weekends</span>
-                        <span style={{ fontSize: "13px" }}>9:00–11:00 AM HKT (great for cleanup content)</span>
+                        <span style={{ fontSize: "13px" }}>{bestTime.weekends}</span>
                       </div>
                       <div style={{ marginTop: "10px", fontSize: "12px", color: COLORS.gray500 }}>
-                        Wed–Fri posts perform best overall. Based on Ocean Conservancy's strategy: 3PM and 9PM slots generate peak engagement.
+                        {bestTime.note}
                       </div>
                     </div>
                   </div>
