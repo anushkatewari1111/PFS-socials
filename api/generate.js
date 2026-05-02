@@ -61,14 +61,19 @@ Respond with ONLY a valid JSON object, no markdown, no explanation. Use this exa
 }`;
 
   try {
+    console.log("[generate] calling model:", MODEL);
+    console.log("[generate] prompt length:", prompt.length);
+
     const completion = await client.chat.completions.create({
       model: MODEL,
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 2000,
+      response_format: { type: "json_object" },
     });
 
     const raw = completion.choices[0].message.content.trim();
+    console.log("[generate] raw response:", raw);
 
     // Strip markdown code fences if model wraps in ```json
     let jsonStr = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
@@ -81,10 +86,11 @@ Respond with ONLY a valid JSON object, no markdown, no explanation. Use this exa
     jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
 
     const data = JSON.parse(jsonStr);
+    console.log("[generate] parsed keys:", Object.keys(data));
 
     return res.status(200).json(data);
   } catch (err) {
-    console.error("Generation error:", err);
+    console.error("[generate] error:", err);
     return res.status(500).json({
       error: err?.message ?? "Failed to generate content. Please try again.",
     });
