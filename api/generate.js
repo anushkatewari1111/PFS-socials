@@ -71,7 +71,15 @@ Respond with ONLY a valid JSON object, no markdown, no explanation. Use this exa
     const raw = completion.choices[0].message.content.trim();
 
     // Strip markdown code fences if model wraps in ```json
-    const jsonStr = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+    let jsonStr = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
+
+    // Extract outermost JSON object in case of extra text
+    const match = jsonStr.match(/\{[\s\S]*\}/);
+    if (match) jsonStr = match[0];
+
+    // Fix unescaped backslashes not part of valid JSON escape sequences
+    jsonStr = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+
     const data = JSON.parse(jsonStr);
 
     return res.status(200).json(data);
